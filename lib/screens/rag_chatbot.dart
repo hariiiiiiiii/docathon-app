@@ -13,7 +13,7 @@ class RagChatScreen extends StatefulWidget {
 }
 
 class _RagChatScreenState extends State<RagChatScreen> {
-  static const _apiKey = 'AIzaSyD47dVtPaOMmOMxiJIk8N0-f0UkoOCydNU';
+  static const _apiKey = API_KEY;
   
   late final GenerativeModel _model;
   late final ChatSession _chat;

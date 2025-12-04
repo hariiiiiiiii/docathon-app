@@ -14,7 +14,7 @@ class MentalHealthChatScreen extends StatefulWidget {
 
 class _MentalHealthChatScreenState extends State<MentalHealthChatScreen> {
   // Same API Key
-  static const _apiKey = 'AIzaSyD47dVtPaOMmOMxiJIk8N0-f0UkoOCydNU';
+  static const _apiKey = API_KEY;
   
   late final GenerativeModel _model;
   late final ChatSession _chat;

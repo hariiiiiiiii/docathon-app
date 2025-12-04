@@ -21,8 +21,8 @@ class VideoCallScreen extends StatelessWidget {
     // ------------------------------------------------------------------
     // REPLACE THESE TWO VALUES with your keys from the ZEGOCLOUD Console
     // ------------------------------------------------------------------
-    const int yourAppID = 387067517; 
-    const String yourAppSign = 'ae714ae1ea0d0a0687e8e093f51916aa8896d350528026834ea0f5e897d103fb'; 
+    const int yourAppID = APP_ID; 
+    const String yourAppSign = APP_SIGN; 
 
     // --- THEME CONSTANT ---
     const backgroundColor = Color(0xFF001219); // Deep dark teal/blue
