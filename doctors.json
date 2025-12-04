@@ -1,0 +1,32 @@
+[
+  {
+    "name": "Dr. Anjali Sharma",
+    "specialty": "Gynecology",
+    "clinicId": null,
+    "availableSlots": [
+      { "date": "2025-12-01", "time": "10:00" },
+      { "date": "2025-12-01", "time": "14:00" }
+    ],
+    "contact": "+9188ZZZZZZZ"
+  },
+  {
+    "name": "Dr. Rahul Verma",
+    "specialty": "Counseling",
+    "clinicId": null,
+    "availableSlots": [
+      { "date": "2025-12-02", "time": "11:00" },
+      { "date": "2025-12-02", "time": "16:00" }
+    ],
+    "contact": "+9177WWWWWWW"
+  },
+  {
+    "name": "Dr. Priya Nair",
+    "specialty": "General Physician",
+    "clinicId": null,
+    "availableSlots": [
+      { "date": "2025-12-03", "time": "09:30" },
+      { "date": "2025-12-03", "time": "13:30" }
+    ],
+    "contact": "+9199MMMMMMM"
+  }
+]

@@ -1,0 +1,20 @@
+[
+  {
+    "name": "Alice Kumar",
+    "age": 19,
+    "contact": "+9198XXXXXXX",
+    "city": "Bengaluru",
+    "consentGiven": true,
+    "role": "patient",
+    "createdAt": null
+  },
+  {
+    "name": "Test User",
+    "age": null,
+    "contact": "",
+    "city": "",
+    "consentGiven": false,
+    "role": "patient",
+    "createdAt": null
+  }
+]
