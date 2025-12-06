@@ -62,7 +62,8 @@ class _AiChatScreenState extends State<AiChatScreen> {
     }
 
     try {
-      final querySnapshot = await FirebaseFirestore.instance.collection('articles').limit(20).get();
+      // UPDATED: Removed .limit(20) so it fetches ALL articles
+      final querySnapshot = await FirebaseFirestore.instance.collection('articles').get();
       _articles = querySnapshot.docs;
 
       StringBuffer knowledgeBase = StringBuffer();

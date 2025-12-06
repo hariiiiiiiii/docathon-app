@@ -28,7 +28,7 @@ class HomeScreen extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text("TeenHealth", 
+                  Text("Swasthya+", 
                     style: GoogleFonts.poppins(color: Colors.white, fontSize: 28, fontWeight: FontWeight.bold)),
                   Container(
                     padding: const EdgeInsets.all(10),

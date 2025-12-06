@@ -24,12 +24,10 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'TeenHealth',
+      title: 'Swasthya+',
       theme: ThemeData(
         useMaterial3: true,
         brightness: Brightness.dark,
-        
-        scaffoldBackgroundColor: Colors.white,
 
         colorScheme: const ColorScheme.dark(
           primary: Color(0xFFFF5A5F), // Coral for Buttons/FAB

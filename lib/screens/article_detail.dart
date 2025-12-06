@@ -132,6 +132,15 @@ class _ArticleDetailScreenState extends State<ArticleDetailScreen> {
                 blockquotePadding: const EdgeInsets.all(20),
                 blockquoteDecoration: BoxDecoration(color: surfaceColor, borderRadius: BorderRadius.circular(16), border: Border(left: BorderSide(color: accentColor, width: 4))),
                 code: GoogleFonts.firaCode(backgroundColor: Colors.black26, color: textColor, fontSize: 14),
+                // REMOVED 'table' property as it does not exist
+                tableHead: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.bold, color: textColor),
+                tableBody: GoogleFonts.poppins(fontSize: 14, color: secondaryTextColor),
+                tableHeadAlign: TextAlign.center,
+                tableBorder: TableBorder.all(color: accentColor.withOpacity(0.3), width: 1, borderRadius: BorderRadius.circular(8)),
+                tableColumnWidth: const FlexColumnWidth(),
+                tableCellsPadding: const EdgeInsets.all(12),
+                tableCellsDecoration: BoxDecoration(color: surfaceColor.withOpacity(0.3)),
+                // REMOVED 'tableHeadCellsDecoration' as it likely does not exist
               ),
             ),
             const SizedBox(height: 60),
