@@ -99,7 +99,7 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
                           "Medical Assistant",
                           Icons.smart_toy_outlined,
                           Colors.cyanAccent, // Changed to Cyan
-                          () => Navigator.push(context, MaterialPageRoute(builder: (_) => const RagChatScreen())),
+                          () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AiChatScreen())),
                           0,
                         ),
                         

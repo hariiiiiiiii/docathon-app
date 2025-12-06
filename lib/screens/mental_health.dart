@@ -3,6 +3,7 @@ import 'package:google_generative_ai/google_generative_ai.dart';
 import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'article_detail.dart'; 
 
 class MentalHealthChatScreen extends StatefulWidget {
@@ -13,9 +14,6 @@ class MentalHealthChatScreen extends StatefulWidget {
 }
 
 class _MentalHealthChatScreenState extends State<MentalHealthChatScreen> {
-  // Same API Key
-  static const _apiKey = API_KEY;
-  
   late final GenerativeModel _model;
   late final ChatSession _chat;
   final TextEditingController _textController = TextEditingController();
@@ -23,10 +21,10 @@ class _MentalHealthChatScreenState extends State<MentalHealthChatScreen> {
   final List<ChatMessage> _messages = [];
   
   List<DocumentSnapshot> _articles = [];
-  bool _isLoading = true; 
+  
+  bool _isInitialized = false;
   bool _isSending = false;
 
-  // Mental Health Specific Suggestions
   final List<String> _suggestions = [
     "I feel anxious",
     "How to manage stress?",
@@ -41,6 +39,21 @@ class _MentalHealthChatScreenState extends State<MentalHealthChatScreen> {
   }
 
   Future<void> _initializeRAG() async {
+    final apiKey = dotenv.env['API_KEY'];
+
+    if (apiKey == null || apiKey.isEmpty) {
+      if (mounted) {
+        setState(() {
+          _messages.add(ChatMessage(
+            text: "Error: API Key not found. Please check your .env file.",
+            isUser: false,
+            isError: true,
+          ));
+        });
+      }
+      return;
+    }
+
     try {
       final querySnapshot = await FirebaseFirestore.instance.collection('articles').get();
       _articles = querySnapshot.docs;
@@ -55,7 +68,6 @@ class _MentalHealthChatScreenState extends State<MentalHealthChatScreen> {
         knowledgeBase.writeln("--- ARTICLE (ID: ${doc.id}) ---\nTitle: $title\nContent: $content\n");
       }
 
-      // --- MENTAL HEALTH PERSONA ---
       final systemPrompt = """
         You are 'Serena', an empathetic and supportive mental health companion for the 'TeenHealth' app.
         
@@ -65,15 +77,12 @@ class _MentalHealthChatScreenState extends State<MentalHealthChatScreen> {
         3. Do NOT provide medical diagnoses.
         4. SAFETY CRITICAL: If the user mentions self-harm, suicide, or severe distress, IMMEDIATELY provide this helpline: 'Kiran Helpline: 1800-599-0019' and urge them to seek professional help.
         5. Use the Knowledge Base for coping strategies if available, but prioritize empathy over facts.
-        
-        CITATION RULE:
-        If you use an article, add a link at the end: `\n\n[👉 Read: Article Title](article:DOC_ID)`
         $knowledgeBase
       """;
 
       _model = GenerativeModel(
         model: 'gemini-2.5-flash', 
-        apiKey: _apiKey,
+        apiKey: apiKey, 
         systemInstruction: Content.system(systemPrompt),
       );
       
@@ -81,7 +90,7 @@ class _MentalHealthChatScreenState extends State<MentalHealthChatScreen> {
 
       if (mounted) {
         setState(() {
-          _isLoading = false;
+          _isInitialized = true;
           _messages.add(ChatMessage(
             text: "Hi, I'm Serena. I'm here to listen and support you. How are you feeling today?",
             isUser: false,
@@ -91,8 +100,7 @@ class _MentalHealthChatScreenState extends State<MentalHealthChatScreen> {
     } catch (e) {
       if (mounted) {
         setState(() {
-          _isLoading = false;
-          _messages.add(ChatMessage(text: "Error: $e", isUser: false, isError: true));
+          _messages.add(ChatMessage(text: "Error initializing AI: $e", isUser: false, isError: true));
         });
       }
     }
@@ -100,7 +108,7 @@ class _MentalHealthChatScreenState extends State<MentalHealthChatScreen> {
 
   Future<void> _sendMessage({String? text}) async {
     final message = text ?? _textController.text.trim();
-    if (message.isEmpty) return;
+    if (message.isEmpty || !_isInitialized) return;
 
     setState(() {
       _messages.add(ChatMessage(text: message, isUser: true));
@@ -164,10 +172,9 @@ class _MentalHealthChatScreenState extends State<MentalHealthChatScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // --- THEME CONSTANTS (UPDATED) ---
-    const backgroundColor = Color(0xFF001219); // Deep dark teal/blue
-    const surfaceColor = Color(0xFF003545);    // Dark teal surface
-    const accentColor = Color(0xFF64FFDA);     // Soft Teal for Mental Health (Calming)
+    const backgroundColor = Color(0xFF001219);
+    const surfaceColor = Color(0xFF003545);
+    const accentColor = Color(0xFF64FFDA);
 
     return Scaffold(
       backgroundColor: backgroundColor,
@@ -196,44 +203,52 @@ class _MentalHealthChatScreenState extends State<MentalHealthChatScreen> {
         children: [
           // Chat List
           Expanded(
-            child: ListView.builder(
-              controller: _scrollController,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-              itemCount: _messages.length + (_isSending ? 1 : 0),
-              itemBuilder: (context, index) {
-                if (_isSending && index == _messages.length) {
-                  return _buildTypingIndicator(surfaceColor, accentColor);
-                }
-                final msg = _messages[index];
-                return _buildMessageBubble(msg, surfaceColor, accentColor);
-              },
-            ),
+            child: _messages.isEmpty
+                ? Center(
+                    child: Text(
+                      "Starting chat...",
+                      style: GoogleFonts.poppins(color: Colors.white38, fontSize: 14),
+                    ),
+                  )
+                : ListView.builder(
+                    controller: _scrollController,
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+                    itemCount: _messages.length + (_isSending ? 1 : 0),
+                    itemBuilder: (context, index) {
+                      if (_isSending && index == _messages.length) {
+                        return _buildTypingIndicator(surfaceColor, accentColor);
+                      }
+                      final msg = _messages[index];
+                      return _buildMessageBubble(msg, surfaceColor, accentColor);
+                    },
+                  ),
           ),
 
           // Quick Suggestion Chips
-          SizedBox(
-            height: 50,
-            child: ListView.builder(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              itemCount: _suggestions.length,
-              itemBuilder: (context, index) {
-                return Padding(
-                  padding: const EdgeInsets.only(right: 8.0, bottom: 10),
-                  child: ActionChip(
-                    label: Text(_suggestions[index]),
-                    labelStyle: GoogleFonts.poppins(color: Colors.white, fontSize: 12),
-                    backgroundColor: surfaceColor,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20),
-                      side: BorderSide(color: accentColor.withOpacity(0.5)),
+          if (_isInitialized)
+            SizedBox(
+              height: 50,
+              child: ListView.builder(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                itemCount: _suggestions.length,
+                itemBuilder: (context, index) {
+                  return Padding(
+                    padding: const EdgeInsets.only(right: 8.0, bottom: 10),
+                    child: ActionChip(
+                      label: Text(_suggestions[index]),
+                      labelStyle: GoogleFonts.poppins(color: Colors.white, fontSize: 12),
+                      backgroundColor: surfaceColor,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                        side: BorderSide(color: accentColor.withOpacity(0.5)),
+                      ),
+                      onPressed: () => _sendMessage(text: _suggestions[index]),
                     ),
-                    onPressed: () => _sendMessage(text: _suggestions[index]),
-                  ),
-                );
-              },
+                  );
+                },
+              ),
             ),
-          ),
 
           // Input Area
           Container(
@@ -251,9 +266,10 @@ class _MentalHealthChatScreenState extends State<MentalHealthChatScreen> {
                     ),
                     child: TextField(
                       controller: _textController,
+                      enabled: _isInitialized,
                       style: GoogleFonts.poppins(color: Colors.white),
                       decoration: InputDecoration(
-                        hintText: "Share your feelings...",
+                        hintText: _isInitialized ? "Share your feelings..." : "Initializing...",
                         hintStyle: GoogleFonts.poppins(color: Colors.white38),
                         border: InputBorder.none,
                         contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
@@ -264,11 +280,11 @@ class _MentalHealthChatScreenState extends State<MentalHealthChatScreen> {
                 ),
                 const SizedBox(width: 12),
                 CircleAvatar(
-                  backgroundColor: accentColor,
+                  backgroundColor: _isInitialized ? accentColor : accentColor.withOpacity(0.5),
                   radius: 24,
                   child: IconButton(
-                    icon: const Icon(Icons.arrow_upward, color: backgroundColor), // Dark icon on bright accent
-                    onPressed: () => _sendMessage(),
+                    icon: const Icon(Icons.arrow_upward, color: backgroundColor),
+                    onPressed: _isInitialized ? () => _sendMessage() : null,
                   ),
                 ),
               ],
@@ -318,14 +334,14 @@ class _MentalHealthChatScreenState extends State<MentalHealthChatScreen> {
             ],
           ),
           child: isUser 
-            ? Text(msg.text, style: GoogleFonts.poppins(color: const Color(0xFF001219), fontWeight: FontWeight.w500, fontSize: 14)) // Dark text on accent bubble
+            ? Text(msg.text, style: GoogleFonts.poppins(color: const Color(0xFF001219), fontWeight: FontWeight.w500, fontSize: 14))
             : MarkdownBody(
                 data: msg.text,
                 onTapLink: (text, href, title) => _handleLinkTap(href),
                 styleSheet: MarkdownStyleSheet(
                   p: GoogleFonts.poppins(color: Colors.white.withOpacity(0.9), fontSize: 14),
                   strong: GoogleFonts.poppins(fontWeight: FontWeight.bold, color: Colors.white),
-                  a: GoogleFonts.poppins(color: accentColor, fontWeight: FontWeight.bold, decoration: TextDecoration.underline), // Link matches accent
+                  a: GoogleFonts.poppins(color: accentColor, fontWeight: FontWeight.bold, decoration: TextDecoration.underline),
                 ),
               ),
         ),
